@@ -1,0 +1,19 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Request {
+  id          String   @id @default(cuid())
+  payloadMass Float
+  orbitType   String
+  deltaV      Float
+  propellant  String
+  email       String
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+}
