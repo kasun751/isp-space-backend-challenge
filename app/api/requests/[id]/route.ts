@@ -2,10 +2,12 @@ import { prisma } from '@/lib/prisma';
 
 export async function PATCH(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
+
     const updated = await prisma.request.update({
-        where: { id: params.id },
+        where: { id },
         data: { status: 'REVIEWED' },
     });
 
