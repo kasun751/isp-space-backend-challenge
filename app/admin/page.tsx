@@ -8,22 +8,38 @@ export default function AdminPage() {
 
     const load = async () => {
         setLoading(true);
+
         try {
             const res = await fetch("/api/requests");
+
+            if (!res.ok) {
+                throw new Error("Failed to fetch requests");
+            }
+
             const data = await res.json();
-            setRequests(data);
+            setRequests(data || []);
         } catch (error) {
             console.error("Failed to load requests", error);
+            setRequests([]);
         } finally {
             setLoading(false);
         }
     };
 
     const markReviewed = async (id: string) => {
-        await fetch(`/api/requests/${id}`, {
-            method: "PATCH",
-        });
-        load();
+        try {
+            const res = await fetch(`/api/requests/${id}`, {
+                method: "PATCH",
+            });
+
+            if (!res.ok) {
+                throw new Error("Failed to update request");
+            }
+
+            await load();
+        } catch (error) {
+            console.error("Failed to mark reviewed", error);
+        }
     };
 
     useEffect(() => {
@@ -38,8 +54,11 @@ export default function AdminPage() {
                     <h1 className="text-3xl font-mono font-bold tracking-tighter text-cyan-400">
                         MISSION_CONTROL // <span className="text-white">INQUIRIES</span>
                     </h1>
-                    <p className="text-slate-400 mt-2 text-sm uppercase tracking-widest">ISP Space Internal Management</p>
+                    <p className="text-slate-400 mt-2 text-sm uppercase tracking-widest">
+                        ISP Space Internal Management
+                    </p>
                 </div>
+
                 <button
                     onClick={load}
                     className="text-xs bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded transition border border-slate-700"
@@ -56,7 +75,9 @@ export default function AdminPage() {
                 ) : (
                     <div className="grid gap-4">
                         {requests.length === 0 && (
-                            <p className="text-center text-slate-500 py-10 border border-dashed border-slate-800 rounded">No mission requests found.</p>
+                            <p className="text-center text-slate-500 py-10 border border-dashed border-slate-800 rounded">
+                                No mission requests found.
+                            </p>
                         )}
 
                         {requests.map((r) => (
@@ -69,16 +90,36 @@ export default function AdminPage() {
                                         <span className="text-xs font-mono text-cyan-500 bg-cyan-500/10 px-2 py-0.5 rounded">
                                             {r.engineModel || "STANDARD_PROP"}
                                         </span>
-                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
-                                            r.status === 'PENDING' ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'
-                                        }`}>
+
+                                        <span
+                                            className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
+                                                r.status === "PENDING"
+                                                    ? "bg-amber-500/10 text-amber-500"
+                                                    : "bg-emerald-500/10 text-emerald-500"
+                                            }`}
+                                        >
                                             {r.status}
                                         </span>
                                     </div>
-                                    <h2 className="text-lg font-semibold text-slate-100">{r.clientEmail}</h2>
+
+                                    <h2 className="text-lg font-semibold text-slate-100">
+                                        {r.email}
+                                    </h2>
+
                                     <div className="flex gap-4 text-sm text-slate-400 font-mono">
-                                        <span>ORBIT: <span className="text-slate-200">{r.orbitType}</span></span>
-                                        <span>PAYLOAD: <span className="text-slate-200">{r.payloadMass}kg</span></span>
+                                        <span>
+                                            ORBIT:{" "}
+                                            <span className="text-slate-200">
+                                                {r.orbitType}
+                                            </span>
+                                        </span>
+
+                                        <span>
+                                            PAYLOAD:{" "}
+                                            <span className="text-slate-200">
+                                                {r.payloadMass}kg
+                                            </span>
+                                        </span>
                                     </div>
                                 </div>
 
@@ -91,9 +132,6 @@ export default function AdminPage() {
                                             MARK_AS_REVIEWED
                                         </button>
                                     )}
-                                    <button className="p-2 text-slate-500 hover:text-white transition">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                                    </button>
                                 </div>
                             </div>
                         ))}
